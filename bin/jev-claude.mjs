@@ -125,7 +125,10 @@ if (!claude) {
 }
 
 if (process.env.JEV_API_KEY || process.env.TYPESAFE_API_KEY) {
-  const { port, close } = await startProxy(workspace);
+  // Keep a gateway the user already set (e.g. a team proxy that issues its own tokens); the
+  // default api.anthropic.com rejects those tokens with 401.
+  const upstreamURL = process.env.ANTHROPIC_BASE_URL || undefined;
+  const { port, close } = await startProxy({ ...workspace, upstreamURL });
   env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${port}`;
   env.CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY = "1";
   Object.assign(env, autoModelEnv());
